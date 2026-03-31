@@ -273,6 +273,10 @@ export default function SwarVersePage() {
 
   const handlePermanentDelete = async (id) => {
     if (!isAdmin) return false
+
+    const confirmed = window.confirm('This will remove the song from Trash permanently. Continue?')
+    if (!confirmed) return false
+
     await permanentlyDeleteSong(id)
     return true
   }
