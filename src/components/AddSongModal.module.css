@@ -1,0 +1,158 @@
+﻿.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(14px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.5rem;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+  box-shadow: var(--shadow);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  color: var(--text);
+  font-family: 'Newsreader', serif;
+  font-size: 1.45rem;
+}
+
+.closeButton,
+.secondaryButton,
+.primaryButton {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.closeButton,
+.secondaryButton {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.closeButton:hover,
+.secondaryButton:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.field label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  color-scheme: dark;
+}
+
+html[data-theme='light'] .field select {
+  color-scheme: light;
+}
+
+.field input::placeholder {
+  color: var(--text-faint);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  outline: none;
+}
+
+.field select option {
+  background: var(--panel-strong);
+}
+
+.row {
+  display: flex;
+  gap: 1rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.primaryButton {
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(147, 51, 234, 0.22);
+}
+
+.primaryButton:hover {
+  filter: brightness(1.05);
+}
+
+@media (max-width: 560px) {
+  .modal {
+    padding: 1.2rem;
+    border-radius: 22px;
+  }
+
+  .row,
+  .actions,
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
