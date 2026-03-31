@@ -1,0 +1,30 @@
+.shelfTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.shelfTab {
+  min-height: 42px;
+  padding: 0.68rem 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--control-bg);
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 700;
+  backdrop-filter: blur(14px);
+}
+
+.shelfTab:hover {
+  border-color: var(--border-strong);
+  background: var(--control-bg-hover);
+}
+
+.shelfTabActive,
+.shelfTabActive:hover {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-color: transparent;
+  color: #fff;
+}
