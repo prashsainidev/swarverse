@@ -1,4 +1,4 @@
-﻿export const STORAGE_KEY = 'swarverse_songs'
+export const STORAGE_KEY = 'swarverse_songs'
 export const CACHE_KEY = 'swarverse_public_cache'
 export const LEGACY_STORAGE_KEYS = ['guitar_vault_songs', 'guitar_vault_public_cache']
 
@@ -11,6 +11,7 @@ export function normalizeSong(item = {}) {
     tags: Array.isArray(item.tags) ? item.tags : [],
     favorite: Boolean(item.favorite),
     addedAt: item.addedAt || new Date().toISOString(),
+    deletedAt: item.deletedAt || null,
   }
 }
 
@@ -33,6 +34,7 @@ export function mapDbSong(row) {
     tags: Array.isArray(row.tags) ? row.tags : [],
     favorite: row.favorite,
     addedAt: row.created_at,
+    deletedAt: row.deleted_at,
   })
 }
 
@@ -51,5 +53,6 @@ export function toDbSong(item, userId) {
     favorite: normalized.favorite,
     created_at: normalized.addedAt,
     updated_at: new Date().toISOString(),
+    deleted_at: normalized.deletedAt,
   }
 }

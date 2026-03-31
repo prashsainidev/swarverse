@@ -1,8 +1,9 @@
-﻿export const FILTERS = ['all', 'chords', 'tabs', 'both']
+export const FILTERS = ['all', 'chords', 'tabs', 'both']
 export const DIFFICULTIES = ['all', 'beginner', 'intermediate', 'advanced']
 export const THEME_KEY = 'swarverse-theme'
 export const PAGE_SIZE = 9
 export const RECENT_LIMIT = 6
+export const TRASH_RETENTION_DAYS = 30
 export const ADMIN_EMAIL = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').trim().toLowerCase()
 
 export const SHELF_META = {
@@ -21,6 +22,9 @@ export const SHELF_META = {
     title: 'Library',
     note: 'The complete list, without everything landing on the homepage at once.',
   },
+  trash: {
+    eyebrow: 'Safety net',
+    title: 'Trash',
+    note: 'Deleted songs stay here for 30 days so you can restore them anytime.',
+  },
 }
-
-

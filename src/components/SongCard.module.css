@@ -1,4 +1,4 @@
-﻿.card {
+.card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -26,6 +26,10 @@
 
 .card:hover::after {
   opacity: 1;
+}
+
+.cardTrash {
+  border-color: var(--danger-border);
 }
 
 .top {
@@ -106,6 +110,12 @@
   color: var(--accent-strong);
 }
 
+.restoreButton:hover {
+  border-color: var(--success-border);
+  color: var(--success-text);
+  background: var(--success-soft);
+}
+
 .deleteButton:hover {
   border-color: var(--danger);
   color: var(--danger);
@@ -131,6 +141,12 @@
   color: var(--text-muted);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.8rem;
+}
+
+.trashNote {
+  color: var(--danger-text);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .tags {
@@ -172,8 +188,6 @@
   }
 }
 
-
-
 .iconButton svg {
   display: block;
   width: 15px;
@@ -187,5 +201,3 @@
 .favoriteIconActive {
   color: currentColor;
 }
-
-

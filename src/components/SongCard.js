@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import styles from './SongCard.module.css'
 
 const DIFFICULTY_COLOR = {
@@ -27,9 +27,23 @@ function FavoriteIcon({ active }) {
   )
 }
 
-export default function SongCard({ song, onEdit, onDelete, onToggleFavorite, canManage = false }) {
+export default function SongCard({
+  song,
+  onEdit,
+  onDelete,
+  onToggleFavorite,
+  onRestore,
+  onPermanentDelete,
+  canManage = false,
+  isTrash = false,
+  trashDaysLeft = 0,
+}) {
+  const trashNote = isTrash
+    ? `In trash. You can restore this for ${trashDaysLeft} more ${trashDaysLeft === 1 ? 'day' : 'days'}.`
+    : ''
+
   return (
-    <article className={styles.card}>
+    <article className={`${styles.card} ${isTrash ? styles.cardTrash : ''}`}>
       <div className={styles.top}>
         <div className={styles.meta}>
           <span className={styles.type}>{TYPE_LABEL[song.type] || song.type}</span>
@@ -38,7 +52,7 @@ export default function SongCard({ song, onEdit, onDelete, onToggleFavorite, can
           </span>
         </div>
 
-        {canManage && (
+        {canManage && !isTrash && (
           <div className={styles.actions}>
             <button
               className={`${styles.iconButton} ${song.favorite ? styles.favoriteActive : ''}`}
@@ -51,8 +65,23 @@ export default function SongCard({ song, onEdit, onDelete, onToggleFavorite, can
             <button className={styles.textButton} onClick={() => onEdit(song)} title="Edit song">
               Edit
             </button>
-            <button className={`${styles.textButton} ${styles.deleteButton}`} onClick={() => onDelete(song.id)} title="Delete song">
+            <button className={`${styles.textButton} ${styles.deleteButton}`} onClick={() => onDelete(song.id)} title="Move song to trash">
               Delete
+            </button>
+          </div>
+        )}
+
+        {canManage && isTrash && (
+          <div className={styles.actions}>
+            <button className={`${styles.textButton} ${styles.restoreButton}`} onClick={() => onRestore(song.id)} title="Restore song">
+              Restore
+            </button>
+            <button
+              className={`${styles.textButton} ${styles.deleteButton}`}
+              onClick={() => onPermanentDelete(song.id)}
+              title="Delete forever"
+            >
+              Delete forever
             </button>
           </div>
         )}
@@ -63,6 +92,7 @@ export default function SongCard({ song, onEdit, onDelete, onToggleFavorite, can
       </a>
 
       {song.artist && <p className={styles.artist}>{song.artist}</p>}
+      {isTrash && <p className={styles.trashNote}>{trashNote}</p>}
 
       {song.tags?.length > 0 && (
         <div className={styles.tags}>

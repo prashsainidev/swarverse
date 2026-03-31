@@ -1,4 +1,4 @@
-﻿create table if not exists public.songs (
+create table if not exists public.songs (
   user_id uuid not null references auth.users(id) on delete cascade,
   id text not null,
   title text not null,
@@ -12,6 +12,8 @@
   updated_at timestamptz not null default timezone('utc', now()),
   primary key (user_id, id)
 );
+
+alter table public.songs add column if not exists deleted_at timestamptz;
 
 create table if not exists public.admin_users (
   email text primary key,
@@ -69,7 +71,7 @@ drop policy if exists "Admins can delete songs" on public.songs;
 create policy "Public can read songs"
 on public.songs
 for select
-using (true);
+using (deleted_at is null or public.is_admin());
 
 create policy "Admins can insert songs"
 on public.songs

@@ -1,17 +1,15 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSupabaseBrowserClient } from '../../lib/supabase/client'
 import { useSongs } from '../../hooks/useSongs'
-import { ADMIN_EMAIL, DIFFICULTIES, FILTERS, PAGE_SIZE, SHELF_META } from './constants'
-import { getPreferredTheme, sortByLibrary, sortByRecent } from './utils'
+import { ADMIN_EMAIL, DIFFICULTIES, FILTERS, PAGE_SIZE, RECENT_LIMIT, SHELF_META } from './constants'
+import { getPreferredTheme, getTrashDaysLeft, isSongDeleted, isTrashVisible, sortByDeleted, sortByLibrary, sortByRecent } from './utils'
 import AddSongModal from '../../components/AddSongModal'
 import AdminLoginModal from '../../components/AdminLoginModal'
 import BrandLogo from '../../components/BrandLogo'
 import SongCard from '../../components/SongCard'
 import styles from './SwarVersePage.module.css'
-
-const RECENT_LIMIT = 6
 
 function ThemeIcon({ theme }) {
   if (theme === 'dark') {
@@ -63,7 +61,18 @@ export default function SwarVersePage() {
   const user = session?.user || null
   const isAdmin = Boolean(user?.email && ADMIN_EMAIL && user.email.toLowerCase() === ADMIN_EMAIL)
 
-  const { songs, loaded, error, saving, addSong, deleteSong, updateSong, toggleFavorite } = useSongs({
+  const {
+    songs,
+    loaded,
+    error,
+    saving,
+    addSong,
+    deleteSong,
+    permanentlyDeleteSong,
+    restoreSong,
+    updateSong,
+    toggleFavorite,
+  } = useSongs({
     supabase,
     user,
     isAdmin,
@@ -135,19 +144,22 @@ export default function SwarVersePage() {
     setPage(1)
   }, [search, typeFilter, diffFilter, artistFilter, activeShelf])
 
+  const activeSongs = useMemo(() => songs.filter((song) => !isSongDeleted(song)), [songs])
+  const trashSongs = useMemo(() => sortByDeleted(songs.filter((song) => isTrashVisible(song))), [songs])
+
   const allArtists = useMemo(() => {
     const artistSet = new Set()
-    songs.forEach((song) => {
+    activeSongs.forEach((song) => {
       if (song.artist?.trim()) {
         artistSet.add(song.artist.trim())
       }
     })
     return [...artistSet].sort((a, b) => a.localeCompare(b))
-  }, [songs])
+  }, [activeSongs])
 
-  const librarySongs = useMemo(() => sortByLibrary(songs), [songs])
-  const recentSongs = useMemo(() => sortByRecent(songs).slice(0, RECENT_LIMIT), [songs])
-  const favoriteSongs = useMemo(() => sortByRecent(songs.filter((song) => song.favorite)), [songs])
+  const librarySongs = useMemo(() => sortByLibrary(activeSongs), [activeSongs])
+  const recentSongs = useMemo(() => sortByRecent(activeSongs).slice(0, RECENT_LIMIT), [activeSongs])
+  const favoriteSongs = useMemo(() => sortByRecent(activeSongs.filter((song) => song.favorite)), [activeSongs])
 
   const filteredSongs = useMemo(
     () =>
@@ -172,8 +184,9 @@ export default function SwarVersePage() {
   const shelfSongs = useMemo(() => {
     if (activeShelf === 'favorites') return favoriteSongs
     if (activeShelf === 'library') return librarySongs
+    if (activeShelf === 'trash') return trashSongs
     return recentSongs
-  }, [activeShelf, favoriteSongs, librarySongs, recentSongs])
+  }, [activeShelf, favoriteSongs, librarySongs, recentSongs, trashSongs])
 
   const visibleSongs = hasActiveFilters ? filteredSongs : shelfSongs
   const totalPages = Math.max(1, Math.ceil(visibleSongs.length / PAGE_SIZE))
@@ -191,12 +204,26 @@ export default function SwarVersePage() {
     setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
   }
 
-  const clearFilters = () => {
+  const resetFilterState = () => {
     setSearch('')
     setTypeFilter('all')
     setDiffFilter('all')
     setArtistFilter('all')
     setShowFilters(false)
+  }
+
+  const clearFilters = () => {
+    resetFilterState()
+  }
+
+  const goHome = () => {
+    resetFilterState()
+    setActiveShelf('recent')
+    setPage(1)
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const openSongModal = (song = null) => {
@@ -235,6 +262,18 @@ export default function SwarVersePage() {
   const handleDelete = async (id) => {
     if (!isAdmin) return false
     await deleteSong(id)
+    return true
+  }
+
+  const handleRestore = async (id) => {
+    if (!isAdmin) return false
+    await restoreSong(id)
+    return true
+  }
+
+  const handlePermanentDelete = async (id) => {
+    if (!isAdmin) return false
+    await permanentlyDeleteSong(id)
     return true
   }
 
@@ -300,6 +339,8 @@ export default function SwarVersePage() {
     : hasActiveFilters
       ? 'Viewing: Filtered results'
       : `Viewing: ${currentMeta.title}`
+  const isHomeView = !hasActiveFilters && activeShelf === 'recent' && currentPage === 1
+  const isTrashShelf = !hasActiveFilters && activeShelf === 'trash'
 
   if (!loaded) {
     return (
@@ -326,15 +367,17 @@ export default function SwarVersePage() {
       )}
       <header className={styles.hero}>
         <div className={styles.heroTop}>
-          <div className={styles.logoArea}>
-            <span className={styles.logoIcon}>
-              <BrandLogo className={styles.brandImage} priority />
-            </span>
-            <div>
-              <p className={styles.eyebrow}>Personal song space</p>
-              <h1 className={styles.logoText}>SwarVerse</h1>
+          <button type="button" className={styles.logoButton} onClick={goHome} aria-label="Go to home">
+            <div className={styles.logoArea}>
+              <span className={styles.logoIcon}>
+                <BrandLogo className={styles.brandImage} priority />
+              </span>
+              <div>
+                <p className={styles.eyebrow}>Personal song space</p>
+                <h1 className={styles.logoText}>SwarVerse</h1>
+              </div>
             </div>
-          </div>
+          </button>
 
           <div className={styles.quickActions}>
             {isHydrated && !isAdmin && supabase && ADMIN_EMAIL && (
@@ -348,7 +391,7 @@ export default function SwarVersePage() {
                 <button className={styles.ghostButton} onClick={handleSignOut} disabled={authLoading}>
                   {authLoading ? 'Signing out...' : 'Logout'}
                 </button>
-                <button className={styles.primaryButton} onClick={() => openSongModal()} disabled={saving}>
+                <button className={styles.primaryButton} onClick={() => openSongModal()} disabled={saving || isTrashShelf}>
                   Add song
                 </button>
               </>
@@ -394,7 +437,7 @@ export default function SwarVersePage() {
                 aria-label="Clear search"
                 title="Clear search"
               >
-                ×
+                x
               </button>
             )}
             <button
@@ -462,9 +505,16 @@ export default function SwarVersePage() {
 
         <div className={styles.resultsRow}>
           <p className={styles.resultsMeta}>
-            <strong>{songs.length}</strong> {songs.length === 1 ? 'song' : 'songs'} total
+            <strong>{activeSongs.length}</strong> {activeSongs.length === 1 ? 'song' : 'songs'} total
           </p>
-          <span className={styles.resultsHint}>{statusHint}</span>
+          <div className={styles.resultsActions}>
+            {!isHomeView && (
+              <button className={styles.homeButton} onClick={goHome}>
+                Home
+              </button>
+            )}
+            <span className={styles.resultsHint}>{statusHint}</span>
+          </div>
         </div>
       </section>
 
@@ -488,6 +538,14 @@ export default function SwarVersePage() {
           >
             Library
           </button>
+          {isAdmin && (
+            <button
+              className={`${styles.shelfTab} ${activeShelf === 'trash' ? styles.shelfTabActive : ''}`}
+              onClick={() => setActiveShelf('trash')}
+            >
+              Trash
+            </button>
+          )}
         </section>
       )}
 
@@ -501,7 +559,9 @@ export default function SwarVersePage() {
               ? 'No songs match these filters right now.'
               : activeShelf === 'favorites'
                 ? 'No favorites yet.'
-                : 'There are no songs to show in this section yet.'}
+                : activeShelf === 'trash'
+                  ? 'Trash is empty.'
+                  : 'There are no songs to show in this section yet.'}
           </p>
           {hasActiveFilters && (
             <button className={styles.resetFilters} onClick={clearFilters}>
@@ -527,7 +587,11 @@ export default function SwarVersePage() {
                 onEdit={openSongModal}
                 onDelete={handleDelete}
                 onToggleFavorite={handleToggleFavorite}
+                onRestore={handleRestore}
+                onPermanentDelete={handlePermanentDelete}
                 canManage={isAdmin}
+                isTrash={isTrashShelf}
+                trashDaysLeft={isTrashShelf ? getTrashDaysLeft(song) : 0}
               />
             ))}
           </div>
@@ -576,12 +640,3 @@ export default function SwarVersePage() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-

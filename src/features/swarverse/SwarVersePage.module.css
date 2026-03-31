@@ -77,6 +77,30 @@
   margin-bottom: 1.3rem;
 }
 
+.logoButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logoButton:hover {
+  background: transparent;
+}
+
+.logoButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 10px;
+  border-radius: 18px;
+}
+
 .logoArea {
   display: flex;
   align-items: center;
@@ -394,6 +418,31 @@ html[data-theme='light'] .selectWrap select {
   color: var(--text-muted);
 }
 
+.resultsActions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.homeButton {
+  min-height: 36px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--control-bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  backdrop-filter: blur(14px);
+}
+
+.homeButton:hover {
+  border-color: var(--border-strong);
+  background: var(--control-bg-hover);
+}
+
 .resultsMeta {
   font-size: 0.95rem;
 }
@@ -555,6 +604,10 @@ html[data-theme='light'] .selectWrap select {
   .pagination {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .resultsActions {
+    justify-content: flex-start;
   }
 
   .grid {

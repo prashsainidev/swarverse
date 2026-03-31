@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { DEFAULT_SONGS } from '../lib/songs/defaultSongs'
@@ -12,12 +12,18 @@ import {
   toDbSong,
 } from '../lib/songs/song-utils'
 
+const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000
+
 function getDefaultSongs() {
   return DEFAULT_SONGS.map(normalizeSong)
 }
 
 function getCacheKeys() {
   return [CACHE_KEY, STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
+}
+
+function getPublicSongs(items) {
+  return items.map(normalizeSong).filter((song) => !song.deletedAt)
 }
 
 function readCachedSongs() {
@@ -29,7 +35,7 @@ function readCachedSongs() {
     try {
       const stored = window.localStorage.getItem(key)
       if (stored) {
-        return JSON.parse(stored).map(normalizeSong)
+        return getPublicSongs(JSON.parse(stored))
       }
     } catch {
       // Ignore malformed cache and keep looking.
@@ -43,7 +49,7 @@ function writeCachedSongs(items) {
   if (typeof window === 'undefined') return
 
   try {
-    const normalized = JSON.stringify(items.map(normalizeSong))
+    const normalized = JSON.stringify(getPublicSongs(items))
     window.localStorage.setItem(CACHE_KEY, normalized)
     window.localStorage.setItem(STORAGE_KEY, normalized)
     LEGACY_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key))
@@ -60,6 +66,13 @@ function clearLocalSeed() {
   } catch {
     // Ignore local cleanup errors after the initial migration attempt.
   }
+}
+
+async function purgeExpiredTrash(supabase, user, isAdmin) {
+  if (!supabase || !user || !isAdmin) return
+
+  const cutoff = new Date(Date.now() - TRASH_RETENTION_MS).toISOString()
+  await supabase.from('songs').delete().eq('user_id', user.id).lte('deleted_at', cutoff)
 }
 
 export function useSongs({ supabase, user, isAdmin }) {
@@ -83,6 +96,10 @@ export function useSongs({ supabase, user, isAdmin }) {
 
       if (!supabase) {
         return
+      }
+
+      if (isAdmin && user) {
+        await purgeExpiredTrash(supabase, user, isAdmin)
       }
 
       const { data, error: fetchError } = await supabase
@@ -146,6 +163,7 @@ export function useSongs({ supabase, user, isAdmin }) {
       id: createSongId(),
       favorite: false,
       addedAt: new Date().toISOString(),
+      deletedAt: null,
     })
 
     const { data, error: insertError } = await supabase
@@ -176,7 +194,74 @@ export function useSongs({ supabase, user, isAdmin }) {
     setSaving(true)
     setError('')
 
-    const { error: deleteError } = await supabase.from('songs').delete().eq('id', id)
+    const { data, error: deleteError } = await supabase
+      .from('songs')
+      .update({
+        deleted_at: new Date().toISOString(),
+        favorite: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('*')
+      .single()
+
+    setSaving(false)
+
+    if (deleteError) {
+      setError(deleteError.message)
+      return false
+    }
+
+    const mappedSong = mapDbSong(data)
+    setSongs((currentSongs) => {
+      const nextSongs = currentSongs.map((song) => (song.id === id ? mappedSong : song))
+      writeCachedSongs(nextSongs)
+      return nextSongs
+    })
+    return true
+  }
+
+  const restoreSong = async (id) => {
+    if (!supabase || !user || !isAdmin) return false
+
+    setSaving(true)
+    setError('')
+
+    const { data, error: restoreError } = await supabase
+      .from('songs')
+      .update({
+        deleted_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('*')
+      .single()
+
+    setSaving(false)
+
+    if (restoreError) {
+      setError(restoreError.message)
+      return false
+    }
+
+    const mappedSong = mapDbSong(data)
+    setSongs((currentSongs) => {
+      const nextSongs = currentSongs.map((song) => (song.id === id ? mappedSong : song))
+      writeCachedSongs(nextSongs)
+      return nextSongs
+    })
+    return true
+  }
+
+  const permanentlyDeleteSong = async (id) => {
+    if (!supabase || !user || !isAdmin) return false
+
+    setSaving(true)
+    setError('')
+
+    const { error: deleteError } = await supabase.from('songs').delete().eq('id', id).eq('user_id', user.id)
 
     setSaving(false)
 
@@ -197,7 +282,7 @@ export function useSongs({ supabase, user, isAdmin }) {
     if (!supabase || !user || !isAdmin) return null
 
     const existingSong = songs.find((song) => song.id === id)
-    if (!existingSong) return null
+    if (!existingSong || existingSong.deletedAt) return null
 
     setSaving(true)
     setError('')
@@ -208,6 +293,7 @@ export function useSongs({ supabase, user, isAdmin }) {
       id,
       favorite: existingSong.favorite,
       addedAt: existingSong.addedAt,
+      deletedAt: existingSong.deletedAt,
     })
 
     const payload = {
@@ -224,6 +310,7 @@ export function useSongs({ supabase, user, isAdmin }) {
       .from('songs')
       .update(payload)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select('*')
       .single()
 
@@ -247,7 +334,7 @@ export function useSongs({ supabase, user, isAdmin }) {
     if (!supabase || !user || !isAdmin) return false
 
     const existingSong = songs.find((song) => song.id === id)
-    if (!existingSong) return false
+    if (!existingSong || existingSong.deletedAt) return false
 
     setSaving(true)
     setError('')
@@ -259,6 +346,7 @@ export function useSongs({ supabase, user, isAdmin }) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select('*')
       .single()
 
@@ -278,5 +366,16 @@ export function useSongs({ supabase, user, isAdmin }) {
     return true
   }
 
-  return { songs, loaded, error, saving, addSong, deleteSong, updateSong, toggleFavorite }
+  return {
+    songs,
+    loaded,
+    error,
+    saving,
+    addSong,
+    deleteSong,
+    permanentlyDeleteSong,
+    restoreSong,
+    updateSong,
+    toggleFavorite,
+  }
 }
