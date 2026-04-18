@@ -1,0 +1,48 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # GitHub Actions cron runs in UTC. Trigger daily and gate the ping in bash
+    # because cron cannot represent a true "every 3 days" interval reliably.
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: Ping only on the 3-day cadence
+        id: cadence
+        shell: bash
+        run: |
+          anchor_date="2026-04-18"
+          today="$(date -u +%F)"
+          days_since=$(( ( $(date -u -d "$today" +%s) - $(date -u -d "$anchor_date" +%s) ) / 86400 ))
+
+          if (( days_since % 3 == 0 )); then
+            echo "should_ping=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_ping=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ping Supabase REST API
+        if: github.event_name == 'workflow_dispatch' || steps.cadence.outputs.should_ping == 'true'
+        shell: bash
+        run: |
+          if [[ -z "${SUPABASE_URL}" || -z "${SUPABASE_ANON_KEY}" ]]; then
+            echo "SUPABASE_URL and SUPABASE_ANON_KEY must be set as GitHub Actions secrets."
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --retry 3 \
+            --retry-all-errors \
+            --connect-timeout 10 \
+            --max-time 30 \
+            "${SUPABASE_URL}/rest/v1/songs?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Accept: application/json"
