@@ -1,4 +1,4 @@
-﻿const seedTimestamp = new Date().toISOString()
+const seedTimestamp = new Date().toISOString()
 
 function createSeedSong(id, title, artist, link, type, difficulty, tags) {
   return {
@@ -29,7 +29,7 @@ export const DEFAULT_SONGS = [
 
   // ARIJIT SINGH
   createSeedSong('11', 'Mirchi Awards Medley',     'Arijit Singh', 'https://tabs.ultimate-guitar.com/tab/arijit-singh/mirchi-music-awards-medley-chords-1504540', 'chords', 'advanced',    ['arijit singh','mashup','medley','bollywood','hindi']),
-  createSeedSong('12', 'Duaa',                     'Arijit Singh', 'https://indichords.com/song/1621/duaa-arijit-singh-nandini-sarkar-vishal-shekhar',           'chords', 'intermediate', ['arijit singh','bollywood','hindi','sad']),
+  createSeedSong('12', 'Duaa',                     'Arijit Singh', 'https://indichords.com/song/1621/duaa-arijit-singh-nandini-sarkar-vishal-shekhar, https://tabs.ultimate-guitar.com/tab/misc-soundtrack/shanghai-duaa-chords-1504880, https://wrytin.com/mirayajain/duaa-chords-shanghai-jezp9bjb',           'chords', 'intermediate', ['arijit singh','bollywood','hindi','sad']),
   createSeedSong('13', 'Darkhaast',                'Arijit Singh', 'https://tabs.ultimate-guitar.com/tab/arijit-singh/darkhaast-chords-1898749',                 'chords', 'intermediate', ['arijit singh','bollywood','hindi','romantic']),
   createSeedSong('14', 'Saware',                   'Arijit Singh', 'https://wrytin.com/dhruvi1/saware-chords-arijit-singh-lzpl78is',                            'chords', 'intermediate', ['arijit singh','bollywood','hindi','sad']),
   createSeedSong('15', 'Sanam Re',                 'Arijit Singh', 'https://wrytin.com/rashidali/sanam-re-chords-title-track-arijit-singh-mithoon-jhx0rfrs',     'chords', 'beginner',     ['arijit singh','bollywood','hindi','romantic']),
@@ -82,5 +82,16 @@ export const DEFAULT_SONGS = [
   createSeedSong('59', 'Dancing With Your Ghost', 'Sasha Alex Sloan',  'https://tabs.ultimate-guitar.com/tab/sasha-alex-sloan/dancing-with-your-ghost-chords-2748744',   'chords', 'beginner', ['indie pop','english','sad']),
   createSeedSong('60', 'Until I Found You',       'Stephen Sanchez',   'https://tabs.ultimate-guitar.com/tab/stephen-sanchez/until-i-found-you-chords-3860363',          'chords', 'beginner', ['pop','english','romantic']),
   createSeedSong('61', 'I Think They Call This Love','Elliot James Reay','https://tabs.ultimate-guitar.com/tab/elliot-james-reay/i-think-they-call-this-love-chords-5782427','chords','beginner',['indie','english','romantic']),
+  createSeedSong('62', 'Abhi Mujh Mein Kahin',     'Sonu Nigam',       'https://wrytin.com/rashidali/abhi-mujh-mein-kahin-chords-agneepath-jelaxcux',                              'chords', 'intermediate', ['bollywood','hindi','sad','agneepath']),
+  createSeedSong('63', 'Moh Moh Ke Dhaage',        'Papon',            'https://wrytin.com/manishchauhan/moh-moh-ke-dhaage-chords-dum-laga-ke-haisha-jkjnzblw',                    'chords', 'intermediate', ['bollywood','hindi','dum laga ke haisha']),
+  createSeedSong('64', 'Tum Hi Ho',                'Arijit Singh',     'https://tabs.ultimate-guitar.com/tab/misc-soundtrack/aashiqui-2-tum-hi-ho-chords-1244521',                 'chords', 'beginner',     ['arijit singh','bollywood','hindi','romantic','aashiqui 2']),
+  createSeedSong('65', 'Uska Hi Banana',           'Arijit Singh',     'https://tabs.ultimate-guitar.com/tab/misc-soundtrack/1920-evil-returns-uska-hi-banana-chords-1494932',     'chords', 'intermediate', ['arijit singh','bollywood','hindi','sad','1920 evil returns']),
+  createSeedSong('66', 'Shape of You',             'Ed Sheeran',       'https://tabs.ultimate-guitar.com/tab/ed-sheeran/shape-of-you-tabs-1928565',                                'tabs',   'beginner',     ['ed sheeran','pop','english']),
+  createSeedSong('67', 'Itna Na Mujhse Tu Pyaar Badha','Talat Mahmood','https://tabs.ultimate-guitar.com/tab/misc-soundtrack/chhaya-itna-na-mujhse-tu-pyaar-badha-chords-3696497', 'chords', 'intermediate', ['bollywood','hindi','classic']),
+  createSeedSong('68', 'Thinking Out Loud',        'Ed Sheeran',       'https://tabs.ultimate-guitar.com/tab/ed-sheeran/thinking-out-loud-chords-1486860',                         'chords', 'intermediate', ['ed sheeran','pop','english','romantic']),
+  createSeedSong('69', 'Main Woh Chaand',          'Darshan Raval',    'https://wrytin.com/rashidali/main-woh-chaand-chords-teraa-surroor-jhuhbhot',                               'chords', 'intermediate', ['darshan raval','bollywood','hindi','sad']),
+  createSeedSong('70', 'Lag Ja Gale',              'Lata Mangeshkar, Sanam', 'https://tabs.ultimate-guitar.com/tab/misc-soundtrack/woh-kaun-thi-lag-ja-gale-chords-1460402, https://wrytin.com/gauravbhatt/lag-ja-gale-chords-sanam-jda8k9o4',             'chords', 'intermediate', ['bollywood','hindi','classic','sanam']),
+  createSeedSong('71', 'Khwaish',                  'Navjot Ahuja',     'https://tabs.ultimate-guitar.com/tab/navjot-ahuja/khwaish-chords-5952051',                                 'chords', 'beginner',     ['indie','hindi']),
+  createSeedSong('72', 'Somewhere Only We Know',   'Keane',            'https://wrytin.com/dhruvi1/someone-only-we-know-chords-keane-lzaoshsb',                                    'chords', 'intermediate', ['english']),
+  createSeedSong('73', 'Let Her Go',               'Passenger',        'https://wrytin.com/jeremywoods/let-her-go-chords-passenger-jdaaboof',                                      'chords', 'intermediate', ['english']),
 ]
-

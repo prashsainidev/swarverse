@@ -38,6 +38,22 @@ export default function SongCard({
   isTrash = false,
   trashDaysLeft = 0,
 }) {
+  const links = song.link ? song.link.split(',').map(l => l.trim()).filter(Boolean) : []
+  const firstLink = links[0] || '#'
+
+  function getDomainName(url) {
+    try {
+      const hostname = new URL(url).hostname;
+      if (hostname.includes('ultimate-guitar')) return 'Ultimate Guitar';
+      if (hostname.includes('wrytin')) return 'Wrytin';
+      if (hostname.includes('indichords')) return 'Indichords';
+      if (hostname.includes('guitartuna')) return 'GuitarTuna';
+      return hostname.replace('www.', '');
+    } catch {
+      return 'Link';
+    }
+  }
+
   const trashNote = isTrash
     ? `In trash. You can restore this for ${trashDaysLeft} more ${trashDaysLeft === 1 ? 'day' : 'days'}.`
     : ''
@@ -87,7 +103,7 @@ export default function SongCard({
         )}
       </div>
 
-      <a href={song.link} target="_blank" rel="noopener noreferrer" className={styles.titleLink}>
+      <a href={firstLink} target="_blank" rel="noopener noreferrer" className={styles.titleLink}>
         <h3 className={styles.songTitle}>{song.title}</h3>
       </a>
 
@@ -104,9 +120,13 @@ export default function SongCard({
         </div>
       )}
 
-      <a href={song.link} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
-        Open Link
-      </a>
+      <div className={styles.linkGroup}>
+        {links.map((linkUrl, idx) => (
+          <a key={idx} href={linkUrl} target="_blank" rel="noopener noreferrer" className={styles.openLink}>
+            {links.length > 1 ? `Open in ${getDomainName(linkUrl)}` : 'Open Link'}
+          </a>
+        ))}
+      </div>
     </article>
   )
 }
