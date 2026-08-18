@@ -131,7 +131,34 @@ export function useSongs({ supabase, user, isAdmin }) {
 
         rows = seededRows || []
         clearLocalSeed()
-      } else if (rows.length > 0 && isAdmin) {
+      } else if (rows.length > 0 && isAdmin && user) {
+        // Auto-sync missing songs
+        const existingTitles = new Set(rows.map(r => r.title.toLowerCase()))
+        const missingSongs = cachedSongs.filter(s => !existingTitles.has(s.title.toLowerCase()))
+        
+        if (missingSongs.length > 0) {
+          const payload = missingSongs.map((item) => toDbSong(item, user.id))
+          const { data: inserted, error: insertError } = await supabase.from('songs').insert(payload).select('*')
+          if (!insertError && inserted) {
+            rows = [...inserted, ...rows]
+          }
+        }
+        
+        // Auto-update links for Duaa and Lag Ja Gale
+        const duaa = cachedSongs.find(s => s.title === 'Duaa')
+        const lagJaGale = cachedSongs.find(s => s.title === 'Lag Ja Gale')
+        
+        for (const row of rows) {
+          if (row.title === 'Duaa' && duaa && row.link !== duaa.link) {
+            await supabase.from('songs').update({ link: duaa.link }).eq('id', row.id)
+            row.link = duaa.link
+          }
+          if (row.title === 'Lag Ja Gale' && lagJaGale && row.link !== lagJaGale.link) {
+            await supabase.from('songs').update({ link: lagJaGale.link }).eq('id', row.id)
+            row.link = lagJaGale.link
+          }
+        }
+
         clearLocalSeed()
       }
 
