@@ -9,35 +9,33 @@ export default function SongResultsSection({
   currentMeta,
   totalPages,
   currentPage,
-  isAdmin,
-  isTrashShelf,
   onPageChange,
   onClearFilters,
-  onEditSong,
-  onDeleteSong,
   onToggleFavorite,
-  onRestoreSong,
-  onPermanentDelete,
-  getTrashDaysLeft,
 }) {
   if (pagedSongs.length === 0) {
     return (
       <div className={styles.empty}>
-        <span className={styles.emptyIcon}>
+        <div className={styles.emptyIconWrap}>
           <BrandLogo className={styles.brandImage} />
-        </span>
-        <p>
+        </div>
+        <h3 className={styles.emptyTitle}>
           {hasActiveFilters
-            ? 'No songs match these filters right now.'
+            ? 'No tracks found for this search'
             : activeShelf === 'favorites'
-              ? 'No favorites yet.'
-              : activeShelf === 'trash'
-                ? 'Trash is empty.'
-                : 'There are no songs to show in this section yet.'}
+              ? 'No favorites yet'
+              : 'No songs in this section'}
+        </h3>
+        <p className={styles.emptySubtitle}>
+          {hasActiveFilters
+            ? 'Try searching with a different artist name, keyword, or clear your filters.'
+            : activeShelf === 'favorites'
+              ? 'Click the star icon on any song to save it to your personal favorites.'
+              : 'No songs to display.'}
         </p>
         {hasActiveFilters && (
-          <button className={styles.resetFilters} onClick={onClearFilters}>
-            Back to default view
+          <button className={styles.resetFiltersBtn} onClick={onClearFilters}>
+            Clear Filters & View All
           </button>
         )}
       </div>
@@ -48,7 +46,7 @@ export default function SongResultsSection({
     <section className={styles.contentSection}>
       <div className={styles.sectionHead}>
         <div>
-          <p className={styles.sectionEyebrow}>{currentMeta.eyebrow}</p>
+          <span className={styles.sectionEyebrow}>{currentMeta.eyebrow}</span>
           <h2 className={styles.sectionTitle}>{currentMeta.title}</h2>
         </div>
         <p className={styles.sectionNote}>{currentMeta.note}</p>
@@ -59,28 +57,31 @@ export default function SongResultsSection({
           <SongCard
             key={song.id}
             song={song}
-            onEdit={onEditSong}
-            onDelete={onDeleteSong}
             onToggleFavorite={onToggleFavorite}
-            onRestore={onRestoreSong}
-            onPermanentDelete={onPermanentDelete}
-            canManage={isAdmin}
-            isTrash={isTrashShelf}
-            trashDaysLeft={isTrashShelf ? getTrashDaysLeft(song) : 0}
           />
         ))}
       </div>
 
       {totalPages > 1 && (
         <div className={styles.pagination}>
-          <button className={styles.pageButton} onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}>
-            Previous
+          <button
+            className={styles.pageButton}
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+          >
+            ← Previous
           </button>
-          <span className={styles.pageInfo}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button className={styles.pageButton} onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}>
-            Next
+          <div className={styles.pageInfo}>
+            <span>Page</span>
+            <span className={styles.pageBadge}>{currentPage}</span>
+            <span>of {totalPages}</span>
+          </div>
+          <button
+            className={styles.pageButton}
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next →
           </button>
         </div>
       )}

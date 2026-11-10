@@ -1,57 +1,31 @@
 import BrandLogo from '../../../components/BrandLogo'
 import styles from './HeroSection.module.css'
-import { ThemeIcon } from './icons'
+import { SparklesIcon, ThemeIcon } from './icons'
 
 export default function HeroSection({
   theme,
-  isHydrated,
-  isAdmin,
-  user,
-  authLoading,
-  saving,
-  isTrashShelf,
-  supabaseAvailable,
   onGoHome,
-  onOpenAdminLogin,
-  onSignOut,
-  onOpenSongModal,
   onToggleTheme,
 }) {
   return (
     <header className={styles.hero}>
-      <div className={styles.heroTop}>
+      {/* Top Glass Navigation Bar */}
+      <nav className={styles.navBar}>
         <button type="button" className={styles.logoButton} onClick={onGoHome} aria-label="Go to home">
           <div className={styles.logoArea}>
-            <span className={styles.logoIcon}>
+            <div className={styles.logoIcon}>
               <BrandLogo className={styles.brandImage} priority />
-            </span>
+            </div>
             <div>
-              <p className={styles.eyebrow}>Personal song space</p>
+              <span className={styles.logoBadge}>Guitar Vault</span>
               <h1 className={styles.logoText}>SwarVerse</h1>
             </div>
           </div>
         </button>
 
         <div className={styles.quickActions}>
-          {isHydrated && !isAdmin && supabaseAvailable && (
-            <button className={styles.ghostButton} onClick={onOpenAdminLogin}>
-              Login
-            </button>
-          )}
-
-          {isHydrated && isAdmin && (
-            <>
-              <button className={styles.ghostButton} onClick={onSignOut} disabled={authLoading}>
-                {authLoading ? 'Signing out...' : 'Logout'}
-              </button>
-              <button className={styles.primaryButton} onClick={onOpenSongModal} disabled={saving || isTrashShelf}>
-                Add song
-              </button>
-            </>
-          )}
-
           <button
-            className={styles.iconButton}
+            className={styles.themeToggleBtn}
             onClick={onToggleTheme}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -59,12 +33,22 @@ export default function HeroSection({
             <ThemeIcon theme={theme} />
           </button>
         </div>
-      </div>
+      </nav>
 
+      {/* Hero Showcase Area */}
       <div className={styles.heroBody}>
-        <p className={styles.heroLine}>Keep the songs you come back to in one place.</p>
-        <p className={styles.heroSubline}>Search fast, open what you need, and keep your favorites close.</p>
-        {isAdmin && <p className={styles.accountNote}>Signed in as {user.email}</p>}
+        <div className={styles.pillStat}>
+          <SparklesIcon />
+          <span>Curated Guitar Chords & Tabs Library</span>
+        </div>
+
+        <h2 className={styles.heroHeading}>
+          Master your songs with <span className={styles.gradientText}>effortless chords</span>.
+        </h2>
+
+        <p className={styles.heroSubline}>
+          Your private acoustic & electric library. Explore chord charts across Ultimate Guitar, Wrytin, and Indichords in one seamless vault.
+        </p>
       </div>
     </header>
   )

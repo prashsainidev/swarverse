@@ -1,43 +1,28 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabaseBrowserClient } from '../../lib/supabase/client'
 import { useSongs } from '../../hooks/useSongs'
-import AddSongModal from '../../components/AddSongModal'
-import AdminLoginModal from '../../components/AdminLoginModal'
 import BrandLogo from '../../components/BrandLogo'
 import HeroSection from './components/HeroSection'
 import SearchPanel from './components/SearchPanel'
 import ShelfTabs from './components/ShelfTabs'
 import SongResultsSection from './components/SongResultsSection'
-import { useAdminSession } from './hooks/useAdminSession'
 import { useSongLibraryView } from './hooks/useSongLibraryView'
 import { getPreferredTheme } from './utils'
 import styles from './SwarVersePage.module.css'
 
 export default function SwarVersePage() {
-  const [isHydrated, setIsHydrated] = useState(false)
   const [theme, setTheme] = useState('dark')
   const [showSplash, setShowSplash] = useState(true)
-  const [showSongModal, setShowSongModal] = useState(false)
-  const [editSong, setEditSong] = useState(null)
 
-  const supabase = isHydrated ? getSupabaseBrowserClient() : null
-  const adminSession = useAdminSession(supabase)
-  const { user, isAdmin } = adminSession
-
-  const songStore = useSongs({
-    supabase,
-    user,
-    isAdmin,
-  })
-
-  const libraryView = useSongLibraryView(songStore.songs, songStore.saving)
+  const songStore = useSongs()
+  const libraryView = useSongLibraryView(songStore.songs)
   const { filters, filterOptions, derived, helpers, searchAreaRef } = libraryView
 
   useEffect(() => {
-    setIsHydrated(true)
     setTheme(getPreferredTheme())
+    const timer = setTimeout(() => setShowSplash(false), 950)
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -47,61 +32,6 @@ export default function SwarVersePage() {
 
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-  }
-
-  const openSongModal = (song = null) => {
-    setEditSong(song)
-    setShowSongModal(true)
-  }
-
-  const closeSongModal = () => {
-    setShowSongModal(false)
-    setEditSong(null)
-  }
-
-  const handleSave = async (data) => {
-    if (!isAdmin) return false
-
-    const savedSong = editSong ? await songStore.updateSong(editSong.id, data) : await songStore.addSong(data)
-    if (!savedSong) return false
-
-    setEditSong(null)
-    return true
-  }
-
-  const handleDelete = async (id) => {
-    if (!isAdmin) return false
-    return songStore.deleteSong(id)
-  }
-
-  const handleRestore = async (id) => {
-    if (!isAdmin) return false
-    return songStore.restoreSong(id)
-  }
-
-  const handlePermanentDelete = async (id) => {
-    if (!isAdmin) return false
-
-    const confirmed = window.confirm('This will remove the song from Trash permanently. Continue?')
-    if (!confirmed) return false
-
-    return songStore.permanentlyDeleteSong(id)
-  }
-
-  const handleToggleFavorite = async (id) => {
-    if (!isAdmin) return false
-    return songStore.toggleFavorite(id)
-  }
-
-  if (!songStore.loaded) {
-    return (
-      <div className={styles.loading}>
-        <span className={styles.loadingIcon}>
-          <BrandLogo className={styles.brandImage} priority />
-        </span>
-        <p>Loading your songs...</p>
-      </div>
-    )
   }
 
   return (
@@ -119,25 +49,9 @@ export default function SwarVersePage() {
 
       <HeroSection
         theme={theme}
-        isHydrated={isHydrated}
-        isAdmin={isAdmin}
-        user={user}
-        authLoading={adminSession.authLoading}
-        saving={songStore.saving}
-        isTrashShelf={derived.isTrashShelf}
-        supabaseAvailable={Boolean(supabase)}
         onGoHome={helpers.goHome}
-        onOpenAdminLogin={adminSession.openAdminLogin}
-        onSignOut={adminSession.handleSignOut}
-        onOpenSongModal={() => openSongModal()}
         onToggleTheme={toggleTheme}
       />
-
-      {songStore.error && <div className={styles.notice}>{songStore.error}</div>}
-      {!adminSession.showAdminLogin && adminSession.authMessage && (
-        <div className={`${styles.notice} ${styles.noticeSuccess}`}>{adminSession.authMessage}</div>
-      )}
-      {isHydrated && !supabase && <div className={styles.notice}>Supabase env values are missing, so live sync is currently off.</div>}
 
       <SearchPanel
         searchAreaRef={searchAreaRef}
@@ -161,7 +75,10 @@ export default function SwarVersePage() {
       />
 
       {!derived.hasActiveFilters && (
-        <ShelfTabs activeShelf={filters.activeShelf} isAdmin={isAdmin} onChange={libraryView.setActiveShelf} />
+        <ShelfTabs
+          activeShelf={filters.activeShelf}
+          onChange={libraryView.setActiveShelf}
+        />
       )}
 
       <SongResultsSection
@@ -171,35 +88,10 @@ export default function SwarVersePage() {
         currentMeta={derived.currentMeta}
         totalPages={derived.totalPages}
         currentPage={derived.currentPage}
-        isAdmin={isAdmin}
-        isTrashShelf={derived.isTrashShelf}
         onPageChange={libraryView.setPage}
         onClearFilters={helpers.clearFilters}
-        onEditSong={openSongModal}
-        onDeleteSong={handleDelete}
-        onToggleFavorite={handleToggleFavorite}
-        onRestoreSong={handleRestore}
-        onPermanentDelete={handlePermanentDelete}
-        getTrashDaysLeft={helpers.getTrashDaysLeft}
+        onToggleFavorite={songStore.toggleFavorite}
       />
-
-      {showSongModal && isAdmin && (
-        <AddSongModal onClose={closeSongModal} onSave={handleSave} editSong={editSong} saving={songStore.saving} />
-      )}
-
-      {adminSession.showAdminLogin && !isAdmin && (
-        <AdminLoginModal
-          authError={adminSession.authError}
-          authLoading={adminSession.authLoading}
-          authMessage={adminSession.authMessage}
-          email={adminSession.loginEmail}
-          password={adminSession.password}
-          onClose={adminSession.closeAdminLogin}
-          onSubmit={adminSession.handleSignIn}
-          onEmailChange={(event) => adminSession.setLoginEmail(event.target.value)}
-          onPasswordChange={(event) => adminSession.setPassword(event.target.value)}
-        />
-      )}
     </div>
   )
 }

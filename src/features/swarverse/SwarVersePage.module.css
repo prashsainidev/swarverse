@@ -1,34 +1,39 @@
 .root {
   position: relative;
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2.2rem 1.5rem 4rem;
+  padding: 2.5rem 1.5rem 5rem;
+  z-index: 1;
 }
 
+/* Ambient Background Lights */
 .root::before,
 .root::after {
   content: '';
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(90px);
+  position: fixed;
+  border-radius: 50%;
   pointer-events: none;
   z-index: -1;
 }
 
 .root::before {
-  width: 240px;
-  height: 240px;
-  top: 10px;
-  right: 6%;
-  background: rgba(168, 85, 247, 0.22);
+  width: 450px;
+  height: 450px;
+  top: -80px;
+  right: 5%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: pulseGlow 8s ease-in-out infinite alternate;
 }
 
 .root::after {
-  width: 280px;
-  height: 280px;
-  bottom: 120px;
-  left: -40px;
-  background: rgba(192, 132, 252, 0.16);
+  width: 500px;
+  height: 500px;
+  bottom: 10%;
+  left: -100px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+  filter: blur(95px);
+  animation: pulseGlow 10s ease-in-out infinite alternate-reverse;
 }
 
 .loading {
@@ -37,18 +42,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.25rem;
   color: var(--text-muted);
 }
 
 .loadingIcon {
-  width: 3rem;
-  height: 3rem;
+  width: 4rem;
+  height: 4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--accent-strong);
-  text-shadow: 0 0 32px rgba(168, 85, 247, 0.35);
+  filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.6));
   animation: pulse 1.6s ease-in-out infinite;
 }
 
@@ -58,14 +63,18 @@
   object-fit: contain;
 }
 
+/* Notification Banners */
 .notice {
-  margin-bottom: 1rem;
-  padding: 0.95rem 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.95rem 1.25rem;
   border: 1px solid var(--danger-border);
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: var(--danger-soft);
   color: var(--danger-text);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
 }
 
 .noticeSuccess {
@@ -74,16 +83,17 @@
   color: var(--success-text);
 }
 
+/* Splash Screen */
 .splashScreen {
   position: fixed;
   inset: 0;
-  z-index: 140;
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: linear-gradient(180deg, var(--bg), var(--bg-alt));
-  animation: splashFade 950ms ease forwards;
+  background: radial-gradient(circle at center, #171028 0%, #090710 100%);
+  animation: splashFade 1100ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: none;
 }
 
@@ -91,70 +101,57 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .splashLogo {
-  width: 5.6rem;
-  height: 5.6rem;
+  width: 5.5rem;
+  height: 5.5rem;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  filter: drop-shadow(0 16px 40px rgba(147, 51, 234, 0.35));
-  animation: splashFloat 1s ease-in-out forwards;
+  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.7));
+  animation: floatSlow 4s ease-in-out infinite;
 }
 
 .splashText {
   color: var(--text);
-  font-family: 'Newsreader', serif;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-
-  50% {
-    transform: translateY(-4px);
-    opacity: 0.75;
-  }
-}
-
-@keyframes splashFloat {
-  0% {
-    transform: translateY(8px) scale(0.94);
-    opacity: 0.2;
-  }
-
-  35% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(-2px) scale(1);
-    opacity: 1;
-  }
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fff 30%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @keyframes splashFade {
-  0%,
-  68% {
+  0% {
     opacity: 1;
+    transform: scale(1);
   }
-
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
   100% {
     opacity: 0;
+    transform: scale(1.04);
     visibility: hidden;
   }
 }
 
-@media (max-width: 680px) {
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
   .root {
-    padding: 1.4rem 1rem 3rem;
+    padding: 1.25rem 1rem 3.5rem;
   }
 }

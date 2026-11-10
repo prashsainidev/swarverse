@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DIFFICULTIES, FILTERS, PAGE_SIZE, RECENT_LIMIT, SHELF_META } from '../constants'
-import { getTrashDaysLeft, isSongDeleted, isTrashVisible, sortByDeleted, sortByLibrary, sortByRecent } from '../utils'
+import { sortByLibrary, sortByRecent } from '../utils'
 
-export function useSongLibraryView(songs, saving) {
+export function useSongLibraryView(songs) {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [diffFilter, setDiffFilter] = useState('all')
   const [artistFilter, setArtistFilter] = useState('all')
   const [showFilters, setShowFilters] = useState(false)
-  const [activeShelf, setActiveShelf] = useState('recent')
+  const [activeShelf, setActiveShelf] = useState('library')
   const [page, setPage] = useState(1)
   const searchAreaRef = useRef(null)
 
@@ -34,8 +34,7 @@ export function useSongLibraryView(songs, saving) {
     setPage(1)
   }, [search, typeFilter, diffFilter, artistFilter, activeShelf])
 
-  const activeSongs = useMemo(() => songs.filter((song) => !isSongDeleted(song)), [songs])
-  const trashSongs = useMemo(() => sortByDeleted(songs.filter((song) => isTrashVisible(song))), [songs])
+  const activeSongs = useMemo(() => songs, [songs])
 
   const allArtists = useMemo(() => {
     const artistSet = new Set()
@@ -73,10 +72,9 @@ export function useSongLibraryView(songs, saving) {
 
   const shelfSongs = useMemo(() => {
     if (activeShelf === 'favorites') return favoriteSongs
-    if (activeShelf === 'library') return librarySongs
-    if (activeShelf === 'trash') return trashSongs
-    return recentSongs
-  }, [activeShelf, favoriteSongs, librarySongs, recentSongs, trashSongs])
+    if (activeShelf === 'recent') return recentSongs
+    return librarySongs
+  }, [activeShelf, favoriteSongs, librarySongs, recentSongs])
 
   const visibleSongs = hasActiveFilters ? filteredSongs : shelfSongs
   const totalPages = Math.max(1, Math.ceil(visibleSongs.length / PAGE_SIZE))
@@ -87,15 +85,13 @@ export function useSongLibraryView(songs, saving) {
     ? {
         eyebrow: 'Matching songs',
         title: 'Filtered results',
-        note: 'Only the songs that match your current search or filters are shown here.',
+        note: 'Showing songs matching your current search query or filter selection.',
       }
-    : SHELF_META[activeShelf]
+    : SHELF_META[activeShelf] || SHELF_META.library
 
-  const statusHint = saving
-    ? 'Syncing changes...'
-    : hasActiveFilters
-      ? 'Viewing: Filtered results'
-      : `Viewing: ${currentMeta.title}`
+  const statusHint = hasActiveFilters
+    ? 'Viewing: Filtered results'
+    : `Viewing: ${currentMeta.title}`
 
   const resetFilterState = () => {
     setSearch('')
@@ -111,7 +107,7 @@ export function useSongLibraryView(songs, saving) {
 
   const goHome = () => {
     resetFilterState()
-    setActiveShelf('recent')
+    setActiveShelf('library')
     setPage(1)
 
     if (typeof window !== 'undefined') {
@@ -144,20 +140,17 @@ export function useSongLibraryView(songs, saving) {
     },
     derived: {
       activeSongs,
-      trashSongs,
       pagedSongs,
       currentMeta,
       statusHint,
       hasActiveFilters,
       totalPages,
       currentPage,
-      isHomeView: !hasActiveFilters && activeShelf === 'recent' && currentPage === 1,
-      isTrashShelf: !hasActiveFilters && activeShelf === 'trash',
+      isHomeView: !hasActiveFilters && activeShelf === 'library' && currentPage === 1,
     },
     helpers: {
       clearFilters,
       goHome,
-      getTrashDaysLeft,
     },
   }
 }
